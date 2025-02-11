@@ -68,34 +68,92 @@ exports.login = (req, res) => {
     }
 
     const tokenOptions = rememberMe ? {} : { expiresIn: '1h' };
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, tokenOptions);
+    const token = jwt.sign(
+      { id: user.id, username: user.username, role: user.role },
+      process.env.JWT_SECRET,
+      tokenOptions
+    );
+    
 
     res.json({ token });
   });
 };
 
-  exports.getUserProfile = (req, res) => {
-    const userId = req.user.id; // ดึง ID ของผู้ใช้จาก Token ที่ถูก Decode แล้ว
-  
-    User.findById(userId, (err, results) => {
-      if (err) {
-        return res.status(500).send('Internal server error');
-      }
-  
-      if (results.length === 0) {
-        return res.status(404).send('User not found');
-      }
-  
-      const user = results[0];
-      res.json({
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        first_name: user.first_name,
-        last_name: user.last_name,
-        role: user.role,
-        profile_image: user.profile_image,
-      });
-    });
-  };
+exports.logout = (req, res) => {
+  const token = req.header('Authorization')?.replace('Bearer ', '');
+  if (!token) {
+    return res.status(400).json({ error: 'Token not provided.' });
+  }
 
+  // Optional: Add token to a blacklist
+  res.status(200).json({ message: 'Logout successful' });
+};
+
+
+
+exports.getUserProfile = (req, res) => {
+  const userId = req.user.id;
+  User.findById(userId, (err, results) => {
+    if (err) return res.status(500).send("Internal server error");
+    if (results.length === 0) return res.status(404).send("User not found");
+
+    const user = results[0];
+    res.json({
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      role: user.role,
+      profile_image: `${req.protocol}://${req.get("host")}/uploads/${user.profile_image}`,
+    });
+  });
+};
+
+// Update User
+exports.updateUser = (req, res) => {
+  const { id } = req.params;
+  const { username, email, first_name, last_name, role } = req.body; // role รวมอยู่ใน body
+  const profile_image = req.file ? req.file.filename : null;
+
+  const userData = { username, email, first_name, last_name, role };
+  if (profile_image) {
+    userData.profile_image = profile_image;
+  }
+
+  // Debug Logs
+  console.log('Incoming Data:', req.body);
+  console.log('Prepared Data for Update:', userData);
+  
+  // ส่งข้อมูลไปยัง Model
+  User.updateUser(id, userData, (err) => {
+    if (err) {
+      console.error('Database Update Error:', err); // Log ข้อผิดพลาด
+      return res.status(500).send('Update failed. Try again later.');
+    }
+    res.json({ message: 'User updated successfully', updatedData: userData });
+  });
+};
+
+
+exports.deleteUser = (req, res) => {
+  const { id } = req.params;
+
+  User.deleteUser(id, (err) => {
+    if (err) return res.status(500).send("Deletion failed. Try again later.");
+    res.json({ message: "User deleted successfully" });
+  });
+};
+
+exports.getAllUsers = (req, res) => {
+  User.getAllUsers((err, results) => {
+    if (err) {
+      console.error("Database query error:", err);
+      return res.status(500).send("Internal server error");
+    }
+    res.json(results);
+  });
+};
+
+  
+  

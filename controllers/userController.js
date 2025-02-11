@@ -20,6 +20,7 @@ exports.updateUser = (req, res) => {
     userData.profile_image = profile_image; // เพิ่มรูปโปรไฟล์ในข้อมูลการอัปเดตถ้ามีการอัปโหลดรูปภาพใหม่
   }
 
+
   User.updateUser(id, userData, (err) => {
     if (err) {
       console.error('Database update error:', err);
