@@ -10,10 +10,10 @@ const db = mysql.createConnection({
 
 db.connect((err) => {
   if (err) {
-  console.error('failed to connect MySQL : ' + err.stack);
+    console.error('❌ Failed to connect MySQL: ', err);
     return;
   }
-  console.log('Connected to MySQL database');
+  console.log('✅ Connected to MySQL database');
 });
 
-module.exports = db;
+module.exports = db; // ✅ ต้องมีบรรทัดนี้เพื่อให้ Import ไปใช้ได้

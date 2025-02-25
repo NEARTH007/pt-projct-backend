@@ -1,7 +1,6 @@
 const express = require('express');
 const cors = require('cors');
 const authRoutes = require('./routes/authRoutes');
-
 require('dotenv').config();
 
 const app = express();
@@ -14,8 +13,10 @@ app.use(cors({
 }));
 
 // Middleware for parsing JSON request bodies
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json()); 
+app.use(express.urlencoded({ extended: true })); 
+
+
 
 // Serve static files from the uploads folder
 app.use('/uploads', express.static('uploads'));
